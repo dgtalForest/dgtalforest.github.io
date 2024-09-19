@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple HTML Tabs</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/default.min.css">
+    <style>
+        .tab-container {
+            display: flex;
+            cursor: pointer;
+            background: #f1f1f1;
+            padding: 10px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            background: #ddd;
+            border: 1px solid #ccc;
+        }
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>Fibco Component Showcase</h1>
+
+<div class="tab-container">
+    <div class="tab" onclick="openTab('tab1')">Booking.vue</div>
+    <div class="tab" onclick="openTab('tab2')">Calendar.vue</div>
+    <div class="tab" onclick="openTab('tab3')">Package.json</div>
+</div>
+
+<div id="tab1" class="tab-content">
+    <h2>Booking.vue</h2>
+    <pre><code class="language-html">
+        &lt;template&gt;
+        &lt;div class="form-wrapper"&gt;
+          &lt;LoadingSpinner
+            added-classes="spinner--bus"
+            v-if="isLoading"
+            src="arrival_animation.gif"
+          /&gt;
+          &lt;div class="form"&gt;
+            &lt;ImageWrapper classes="logo" src="d2g-logo.png" alt="door2gate" /&gt;
+            &lt;SwitchBookingType @reset-gtm-data="resetGtmData" /&gt;
+            &lt;div v-if="!isMobile" class="desktop-location-wrapper"&gt;
+              &lt;DirectionSelection
+                class="location-wrapper"
+                ref="directionSelection"
+                :location-properties="locationProperties"
+                @on-address-selected="onAddressSelected"
+                @click="clear"
+              /&gt;
+              &lt;svg class="swap" width="32" height="32" @click="swap"&gt;
+                &lt;use xlink:href="#locate" /&gt;
+              &lt;/svg&gt;
+            &lt;/div&gt;
+            &lt;div class="location-wrapper" v-else&gt;
+              &lt;ValueInput
+                v-for="(propertyName, index) in locationProperties"
+                :key="propertyName"
+                :property="getPropertyFromStore(propertyName)"
+                data-test="input-wrapper"
+                class="grey"
+                :placeholder="locationPlaceholder(index)"
+                :property-name="propertyName"
+                :class="[
+                  isLocationSelectorActive(currentProperty, propertyName),
+                  isLocationTopPosition(index),
+                ]"
+                :classes="{ 'input-semibold': true }"
+              &gt;
+                &lt;template&gt;
+                  &lt;ImageWrapper
+                    :src="airportIcon(propertyName)"
+                    :alt="propertyName"
+                  /&gt;
+                  &lt;svg
+                    v-show="getDepartureOrDestination(propertyName)"
+                    width="26"
+                    height="26"
+                    class="close"
+                    @click="clear(propertyName)"
+                  &gt;
+                    &lt;use xlink:href="#plus" /&gt;
+                  &lt;/svg&gt;
+                &lt;/template&gt;
+              &lt;/ValueInput&gt;
+              &lt;svg class="swap" width="32" height="32" @click="swap"&gt;
+                &lt;use xlink:href="#locate" /&gt;
+              &lt;/svg&gt;
+            &lt;/div&gt;
+            &lt;ShuttleTypeSwitcher :zone="d2gStore.zone" /&gt;
+            &lt;BookingDates :currentProperty="currentProperty" /&gt;
+            &lt;div class="round-wrap"&gt;
+              &lt;RoundTrip
+                :info-component="infoComponent"
+                :disabled-prop="'returnJourney'"
+                :round-trip="d2gStore.isRoundTrip"
+                @disable="disableRoundTripField"
+                @toggle="toogleRoundTrip"
+              /&gt;
+            &lt;/div&gt;
+            &lt;div class="traveller-wrapper"&gt;
+              &lt;ValueInput
+                class="full"
+                :placeholder="t('passengers.multiValue')"
+                :property="getPropertyFromStore('passengers')"
+                property-name="passengers"
+                :disabled="!d2gStore.zone"
+                :class="{
+                  active: isPassengers(currentProperty),
+                  disabled: !d2gStore.zone,
+                }"
+              &gt;
+                &lt;ImageWrapper src="traveller.svg" alt="traveller" /&gt;
+              &lt;/ValueInput&gt;
+            &lt;/div&gt;
+            &lt;div class="button-wrap"&gt;
+              &lt;CButton
+                data-test="button-wrap"
+                :disabled="!d2gStore.isFormValid"
+                :text="t('search')"
+                @click="bookNow"
+              /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+          &lt;div v-if="infoComponent" class="info-panel" data-test="info-panel"&gt;
+            &lt;div class="info-component-wrapper"&gt;
+              &lt;CloseButton @close-click="closeInfoPanel" /&gt;
+              &lt;p
+                v-if="infoComponent?.title"
+                v-show="
+                  infoComponent?.componentName.indexOf('map-wrapper') === -1 &&
+                  infoComponent?.componentName.indexOf('mapWrapper') === -1
+                "
+                class="title"
+              &gt;
+                {{ t(infoComponent.title) }}
+              &lt;/p&gt;
+              &lt;component
+                ref="infoComponentRef"
+                :is="infoComponent.component"
+                :key="infoComponent.propertyName"
+                :property-name="infoComponent.propertyName"
+                :options="infoComponent.options"
+                :error="infoComponentError"
+                :is-mobile-stops-search="isMobile"
+              /&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+      &lt;/template&gt;
+      
+      &lt;script setup lang="ts"&gt;
+      import { useD2GStore } from 'flibco-ui-shared/src/store/d2g-store';
+      import { onMounted, ref, computed, defineEmits, watch } from 'vue';
+      import { useRouter, useRoute } from 'vue-router/composables';
+      import { useI18n } from 'vue-i18n-composable';
+      import { useViewport } from 'flibco-ui-shared/src/hooks/useViewport';
+      
+      import { useD2GBookingFormComposables } from '@/hooks/D2G/d2gBookingForm.composables';
+      import usePrefillData from '@/hooks/D2G/usePrefillData';
+      import useRoundTripBookingForm from '@/hooks/useRoundTripBookingForm';
+      import BookingService from 'flibco-ui-shared/src/services/BookingService';
+      import BackErrorResolver from 'flibco-ui-shared/src/services/BackErrorResolver';
+      import DirectionSelection from './DirectionSelection.vue';
+      import {
+        Destination,
+        Gate,
+      } from 'flibco-ui-shared/src/models/booking/bookingState';
+      import GateDto from 'flibco-ui-shared/src/models/GateDto';
+      import D2GAlternativeTimeSlots from '@/services/D2GAlternativeTimeSlots';
+      //import { NormalizeDateTime } from 'flibco-ui-shared/src/utils/common';
+      import { NormalizeDateTime } from '@/utils/normalizeDateTime';
+      import MapWrapper from '@/components/D2G/mapWrapper/MapWrapper.vue';
+      import SwitchBookingType from '@/components/controls/booking/SwitchBookingType.vue';
+      import BookingDates from './BookingDates.vue';
+      import ValueInput from 'flibco-ui-shared/src/components/controls/booking/ValueInput.vue';
+      import ShuttleTypeSwitcher from './ShuttleTypeSwitcher.vue';
+      
+      import RoundTrip from 'flibco-ui-shared/src/components/controls/booking/RoundTrip.vue';
+      import Calendar from './Calendar.vue';
+      import D2GPassengers from './D2GPassengers.vue';
+      import { useEmitter } from 'flibco-ui-shared/src/hooks/useEmitter';
+      import { useGtmStore } from 'flibco-ui-shared/src/store/gtm-store';
+      import { AxiosResponse } from 'flibco-ui-shared/src/utils/flibco-axios';
+      
+      const d2gBookingEmit = defineEmits(['clear-location']);
+      
+      const d2gStore = useD2GStore();
+      const { t } = useI18n();
+      const router = useRouter();
+      const route = useRoute();
+      const { setGtmFunnelData } = useGtmStore();
+      
+      const infoComponent = ref&lt;any&gt;(null);
+      const infoComponentRef = ref&lt;any&gt;(null);
+      const directionSelection = ref&lt;DirectionSelection | null&gt;(null);
+      
+      const {
+        getZone,
+        init,
+        checkDate,
+        airportIcon,
+        getDepartureOrDestination,
+        isPassengers,
+        isLocationSelectorActive,
+        isLocationTopPosition,
+        getPropertyFromStore,
+      } = useD2GBookingFormComposables();
+      
+      const { prefillByQuery } = usePrefillData();
+      
+      const { disableRoundTripField, toogleRoundTrip } = useRoundTripBookingForm();
+      const { isMobile } = useViewport();
+      const currentProperty = ref&lt;string&gt;('');
+      const isLoading = ref&lt;boolean&gt;(false);
+      const locationProperties = ['departure', 'destination'];
+      
+      const { on, rootEmit } = useEmitter();
+      
+      init();
+      
+      const mounted = async () =&gt; {
+        await prefillByQuery();
+        on('info-panel-open', infoPanelComponentOpenHandler);
+      };
+      
+      onMounted(() =&gt; {
+        mounted();
+      });
+      
+      function infoPanelComponentOpenHandler(data: any) {
+        closeInfoPanel();
+      
+        infoComponent.value = data ? { ...data } : null;
+        if (data) {
+          infoComponent.value && (infoComponent.value.componentName = data.component);
+      
+          const isMapComponent =
+            ['MapWrapper', 'map-wrapper'].indexOf(
+              infoComponent.value?.componentName
+            ) !== -1;
+          if (isMapComponent) {
+            const locationSearchComponent = directionSelection.value;
+            if (locationSearchComponent) {
+              const selectedSearchComponent = locationSearchComponent?.$children.find(
+                (child: unknown) =&gt;
+                  (child as { propertyName: string })?.propertyName ===
+                  data.propertyName
+              );
+              selectedSearchComponent?.$el?.querySelector('input')?.focus();
+            }
+          }
+      
+          if (data.type === 'openHint') {
+            rootEmit('open-dialog', {
+              name: 'Time',
+              options: { time: data.time },
+            });
+      
+            document.getElementById('time-dialog')?.scrollIntoView({
+              behavior: 'smooth',
+            });
+            closeInfoPanel();
+          } else {
+            currentProperty.value = data.propertyName;
+          }
+      
+          switch (infoComponent.value?.componentName) {
+            case 'map-wrapper':
+            case 'mapWrapper':
+              infoComponent.value.component = MapWrapper;
+              break;
+            case 'calendar':
+              infoComponent.value.component = Calendar;
+              break;
+            case 'D2GPassengers':
+              infoComponent.value.component = D2GPassengers;
+          }
+        } else {
+          closeInfoPanel();
+        }
+      }
+      
+      function closeInfoPanel() {
+        d2gStore.validateDate(infoComponent.value?.propertyName);
+        infoComponent.value = null;
+        currentProperty.value = '';
+      }
+      
+      function clear(propertyName: string) {
+        if (propertyName === 'departure') {
+          d2gStore.setDeparture(undefined);
+        }
+        if (propertyName === 'destination') {
+          d2gStore.setDestination(undefined);
+        }
+      
+        d2gBookingEmit('clear-location', propertyName);
+      }
+      
+      function swap() {
+        closeInfoPanel();
+        d2gStore.toggleTripType();
+        checkDate();
+      }
+      
+      async function checkBookingAllowed(): Promise&lt;boolean&gt; {
+        const destination = d2gStore.destination as Gate;
+        const departure = d2gStore.departure as Gate;
+        let door: Destination | Gate;
+        let gateId: string;
+        const isAirportDirection = destination.airport && departure.airport;
+      
+        if (isAirportDirection) {
+          door = departure;
+          gateId =
+            getZone.value.gates
+              .filter((gate: GateDto) =&gt; gate.enabled)
+              .find((gate: GateDto) =&gt; gate.code === destination.name)?.gateId ?? '';
+        } else {
+          door =
+            d2gStore.getAirportStopDirection === 'departure'
+              ? destination
+              : departure;
+          gateId =
+            getZone.value.gates
+              .filter((gate: GateDto) =&gt; gate.enabled)
+              .find((gate: GateDto) =&gt; gate.code === d2gStore.gate?.name)?.gateId ??
+            '';
+        }
+      
+        if (!d2gStore.outwardJourney) {
+          return false;
+        }
+      
+        let dateTimeRound = 0;
+        if (d2gStore.isRoundTrip && d2gStore.returnJourney) {
+          dateTimeRound = NormalizeDateTime(
+            d2gStore.returnJourney?.date,
+            d2gStore.returnJourney?.time,
+            getZone.value.timeZone
+          );
+        }
+      
+        const tripType = `${d2gStore.getTripType}${
+          d2gStore.isRoundTrip ? '_RETURN' : ''
+        }`;
+        const adultsCount = d2gStore.getPassengers?.adults ?? 0;
+        const infantsCount = d2gStore?.getPassengers?.children ?? 0;
+      
+        try {
+          const bookingRequest = await BookingService.checkBookingAllowed({
+            privateShuttle: d2gStore.isPrivateShuttle,
+            tripType,
+            adultsCount,
+            infantsCount,
+            doorLatitude: door?.lat,
+            doorLongitude: door?.lon,
+            opsZoneId: getZone.value.opsZoneId,
+            dateTime: NormalizeDateTime(
+              d2gStore.outwardJourney.date,
+              d2gStore.outwardJourney.time,
+              getZone.value.timeZone
+            ),
+            dateTimeRound,
+            gateId,
+          });
+          d2gStore.setPrice(bookingRequest.price);
+          d2gStore.setBookingRequestId(bookingRequest.bookingRequestId);
+      
+          return true;
+        } catch (e: unknown) {
+          handleErrorBookingAllowance(e as { data: { errorCode: string } });
+          return false;
+        }
+      }
+      
+      function handleErrorBookingAllowance(e: { data: { errorCode: string } }) {
+        if (e?.data.errorCode === 'D2G_BOOKING_TRIP_DATE_TIME_NOT_VALID') {
+          d2gStore.resetJourneys();
+        }
+      
+        const isTimeSlotCode = D2GAlternativeTimeSlots.isTimeSlotCode(
+          e?.data
+            .errorCode as keyof typeof D2GAlternativeTimeSlots.timeSlotsErrorsCodes
+        );
+      
+        let errorOpts = {};
+        if (isTimeSlotCode) {
+          infoComponent.value = null;
+          errorOpts = {
+            name: 'TimeSlotsModal',
+            options: D2GAlternativeTimeSlots.getOptions(e?.data.errorCode),
+          };
+        } else {
+          errorOpts = {
+            name: 'error',
+            options: {
+              message: BackErrorResolver.resolve(e as AxiosResponse),
+            },
+          };
+        }
+      
+        rootEmit('open-dialog', errorOpts);
+      }
+      
+      function validateForm(): boolean {
+        let result = true;
+        if (
+          d2gStore.outwardJourney?.error ||
+          !d2gStore.outwardJourney?.time?.display
+        ) {
+          result = false;
+          d2gStore.outwardJourney &&
+            d2gStore.setOutwardJourney({
+              ...d2gStore.outwardJourney,
+              error: ' ',
+            });
+        }
+      
+        if (
+          d2gStore.isRoundTrip &&
+          (d2gStore.returnJourney?.error || !d2gStore.returnJourney?.time?.display)
+        ) {
+          result = false;
+          d2gStore.returnJourney &&
+            d2gStore.setReturnJourney({
+              ...d2gStore.returnJourney,
+              error: ' ',
+            });
+        }
+        return result;
+      }
+      
+      function resetGtmData(): void {
+        setGtmFunnelData({
+          fromDeparture: null,
+          toArrival: null,
+        });
+      }
+      
+      async function bookNow() {
+        if (!validateForm()) {
+          return;
+        }
+        isLoading.value = true;
+        if (await checkBookingAllowed()) {
+          setGtmFunnelData({
+            fromDeparture: d2gStore.departure ?? null,
+            toArrival: d2gStore.destination ?? null,
+          });
+          d2gStore.cleanBeforeOrder();
+          router.push({
+            name: 'd2g-order-summary',
+            query: { ...(route.query ?? {}) },
+          });
+        }
+        d2gStore.setPassengersDataRequired(getZone.value.passengersDataRequired);
+        isLoading.value = false;
+      }
+      
+      const infoComponentError = computed&lt;boolean&gt;(() =&gt; {
+        return (
+          (infoComponent.value?.propertyName === 'outwardJourney' &&
+            d2gStore.isOutwardJourneyError) ||
+          (infoComponent.value?.propertyName === 'returnJourney' &&
+            d2gStore.isReturnJourneyError)
+        );
+      });
+      
+      function locationPlaceholder(index: number) {
+        return t(index === 0 ? 'D2G-destination' : 'G2D-destination');
+      }
+      
+      function onAddressSelected(address: Gate) {
+        const isMapComponent =
+          ['MapWrapper', 'map-wrapper'].indexOf(
+            infoComponent.value?.componentName
+          ) !== -1;
+      
+        if (isMapComponent) {
+          (infoComponentRef.value as MapWrapper)?.addressSelected(address);
+        }
+      }
+      
+      watch(
+        () =&gt; d2gStore.destination as Gate | Destination,
+        (newVal: Gate | Destination) =&gt; {
+          setGtmFunnelData({
+            fromDeparture: d2gStore.departure ?? null,
+            toArrival: newVal ?? null,
+          });
+        },
+        {
+          immediate: true,
+        }
+      );
+      
+      watch(
+        () =&gt; d2gStore.departure as Gate | Destination,
+        (newVal: Gate | Destination) =&gt; {
+          setGtmFunnelData({
+            fromDeparture: newVal ?? null,
+            toArrival: d2gStore.destination ?? null,
+          });
+        },
+        {
+          immediate: true,
+        }
+      );
+      &lt;/script&gt;
+      &lt;style lang="scss" scoped&gt;
+      @import 'flibco-ui-shared/src/assets/style/_variables.scss';
+      
+      .form-wrapper {
+        margin-top: 62px;
+        position: relative;
+      
+        .form,
+        .info-panel {
+          width: 386px;
+          min-height: 630px;
+          padding-bottom: 40px;
+          border-radius: 9px;
+          box-sizing: border-box;
+          background-color: $white;
+      
+          @media (max-width: 767px) {
+            height: auto;
+          }
+        }
+      
+        .round-wrap {
+          padding: 0 20px;
+          width: 100%;
+      
+          @media (max-width: 767px) {
+            padding: 0;
+          }
+        }
+      
+        .close {
+          position: absolute;
+          right: 1px;
+          top: 50%;
+          transform: translateY(-50%) rotate(45deg);
+          fill: $grey;
+        }
+      
+        .form {
+          position: relative;
+          z-index: 3;
+          display: flex;
+          align-items: center;
+          flex-direction: column;
+          justify-content: flex-start;
+          box-shadow: 1px 1px 20px 10px $black-shadow;
+          padding-top: 29px;
+      
+          .logo {
+            width: 150px;
+          }
+      
+          .booking-switcher {
+            margin-top: 20px;
+      
+            a,
+            a:visited,
+            a:active {
+              color: black;
+            }
+          }
+      
+          .desktop-location-wrapper {
+            position: relative;
+            width: 100%;
+            .swap {
+              position: absolute;
+              top: 52px;
+              right: 30px;
+              cursor: pointer;
+              fill: $light-green;
+              color: $green;
+              transition: all 0.3s;
+      
+              &:active,
+              &:hover,
+              &:focus {
+                color: $dark-green;
+              }
+            }
+          }
+      
+          .location-wrapper {
+            position: relative;
+            margin-top: 20px;
+      
+            .swap {
+              position: absolute;
+              top: 32px;
+              right: 30px;
+              cursor: pointer;
+              fill: $light-green;
+              color: $green;
+              transition: all 0.3s;
+      
+              &:active,
+              &:hover,
+              &:focus {
+                color: $dark-green;
+              }
+            }
+          }
+        }
+      
+        .button-wrap {
+          margin-top: 22px;
+          box-sizing: border-box;
+          width: 100%;
+          padding: 0 15px;
+        }
+      
+        .info-panel {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          left: 379px;
+          z-index: 4;
+          box-shadow: 0 0 7px 3px $black-shadow;
+      
+          @media (max-width: 990px) {
+            width: 370px;
+          }
+      
+          .info-component-wrapper {
+            padding-top: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            box-sizing: border-box;
+      
+            .title {
+              font-weight: 700;
+              font-size: 24px;
+              color: $green;
+              margin-bottom: 20px;
+              text-align: center;
+      
+              @media (max-width: 767px) {
+                margin-bottom: 10px;
+              }
+            }
+      
+            .close-wrapper {
+              position: absolute;
+              top: 12px;
+              right: 16px;
+              cursor: pointer;
+            }
+          }
+        }
+      
+        ::v-deep .input-wrapper.error {
+          .info-text {
+            color: $error;
+          }
+        }
+      }
+      
+      @media (max-width: 767px) {
+        .form-wrapper {
+          margin-top: 15px;
+          width: 100%;
+      
+          img {
+            height: auto;
+          }
+      
+          .button-wrap {
+            padding: 0;
+          }
+      
+          .form {
+            width: 100%;
+            padding: 30px 15px 20px;
+      
+            .booking-switcher {
+              width: 100%;
+      
+              .inactive,
+              .active {
+                width: 50%;
+              }
+            }
+      
+            .location-wrapper,
+            .round-trip-wrapper,
+            .shuttle-type-wrapper,
+            .traveller-wrapper {
+              width: 100%;
+            }
+      
+            .location-wrapper {
+              .swap {
+                right: 5px;
+              }
+      
+              ::v-deep span.error {
+                display: none;
+              }
+            }
+          }
+      
+          .info-panel {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            padding: 8vh 0 5vh;
+            z-index: 1000;
+            background: #00000050;
+            left: 0;
+            width: 100%;
+            box-shadow: 1px 1px 20px 10px $black-shadow;
+            overflow: auto;
+      
+            .info-component-wrapper {
+              position: relative;
+              border-radius: 10px;
+              background: $white;
+              padding-top: 15px;
+              height: 100%;
+              overflow: auto;
+              z-index: 1000;
+            }
+          }
+        }
+      }
+      &lt;/style&gt;
+      
+    </code></pre>
+</div>
+
+<div id="tab2" class="tab-content">
+    <h2>Calendar.vue</h2>
+    <pre><code class="language-html">
+        &lt;template&gt;
+        &lt;CalendarBase
+          :is-day-disabled="isDayDisabled"
+          :journey="getJourney"
+          :min-date="minDate"
+          :min-time-before-booking="minTimeBeforeBooking"
+          :is-today-disabled="isTodayDisabled"
+          :today-in-zone="todayInZone"
+          :selected-date="selectedDate"
+          :selected-time="selectedTime"
+          @set-selected-date="setSelectedDate"
+          @confirm="
+            () =&gt; {
+              updateValue();
+              $parent.$emit('info-panel-open', null);
+            }
+          "
+        &gt;
+          &lt;div class="calendar-bottom-wrap"&gt;
+            &lt;div class="calendar-enough-time" v-if="!isArrivalTime"&gt;
+              &lt;ImageWrapper
+                class="calendar-like-person"
+                src="like-person.svg"
+                alt="next"
+              /&gt;
+              &lt;span v-html="$t('enough-time-between-arrival')" /&gt;
+            &lt;/div&gt;
+            &lt;Multiselect
+              id="time-search"
+              v-model="selectedTime"
+              :options="d2gTimeSuggestions"
+              :searchable="true"
+              :close-on-select="true"
+              :placeholder="`${$t('desired')} ${$t(
+                isArrivalTime ? 'arrivalTime' : 'departureTime'
+              )}`"
+              label="display"
+              :allow-empty="false"
+              data-test="time-multiselect"
+              track-by="display"
+              class="d2g d2g-time-multiselect"
+              :class="{ error: error }"
+              @select="onTimeSelected"
+            &gt;
+              &lt;template #selection&gt;
+                &lt;div class="multiselect-left"&gt;
+                  &lt;svg width="32" height="32" viewBox="0 0 32 32"&gt;
+                    &lt;use xlink:href="#airport-icon" /&gt;
+                  &lt;/svg&gt;
+                &lt;/div&gt;
+              &lt;/template&gt;
+            &lt;/Multiselect&gt;
+            &lt;div class="estimated-time" :class="{ 'drop-off': !isArrivalTime }"&gt;
+              &lt;div class="estimated-time-inner"&gt;
+                &lt;svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="32"
+                  height="32"
+                  viewBox="0 0 32 32"
+                &gt;
+                  &lt;use xlink:href="#bus-pick-up" /&gt;
+                &lt;/svg&gt;
+                &lt;div&gt;
+                  &lt;p&gt; class="estimated-time-text-top"&gt;
+                    {{ $t(isArrivalTime ? 'pick-up-time' : 'drop-off-time') }}
+                  &lt;/p&gt;
+                  &lt;p&gt; class="estimated-time-text-bottom"&gt;
+                    {{ $t('will-be-defined') }}
+                  &lt;/p&gt;
+                &lt;/div&gt;
+              &lt;/div&gt;
+              &lt;svg
+                v-tooltip.left="{
+                  content: $t(
+                    isArrivalTime ? 'pick-up-time-message' : 'drop-off-time-message'
+                  ),
+                  trigger: 'hover click',
+                }"
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 18 18"
+              &gt;
+                &lt;use xlink:href="#distribusion-info-grey" /&gt;
+              &lt;/svg&gt;
+            &lt;/div&gt;
+          &lt;/div&gt;
+        &lt;/CalendarBase&gt;
+      &lt;/template&gt;
+      
+      &lt;script&gt; lang="ts"&gt;
+      import { Component, Prop, Mixins } from 'vue-property-decorator';
+      
+      // TODO remove
+      import Multiselect from 'vue-multiselect';
+      import moment from 'moment';
+      import 'moment-timezone';
+      import {
+        Journey,
+        Time,
+        Day,
+      } from 'flibco-ui-shared/src/models/booking/bookingState';
+      import {
+        //NormalizeDateTime,
+        DEFAULT_TIME_ZONE_S2S,
+        MAX_BOOKING_MONTH_TIME,
+        DAY_LABELS,
+      } from 'flibco-ui-shared/src/utils/common';
+      import { NormalizeDateTime } from '@/utils/normalizeDateTime';
+      import LocalizationMixins from 'flibco-ui-shared/src/mixins/LocalizationMixins';
+      import ScheduleService from '@/services/ScheduleService';
+      import OpsZone from 'flibco-ui-shared/src/models/opsZone/OpsZone';
+      import { useD2GStore } from 'flibco-ui-shared/src/store/d2g-store';
+      import CalendarBase from 'flibco-ui-shared/src/components/CalendarBase.vue';
+      import { D2GDirectionEnum } from 'flibco-ui-shared/src/models/booking/Booking';
+      
+      const appendZero = (item: number) =&gt;
+        `${item}`?.length &lt; 2 ? `0${item}` : `${item}`;
+      
+      type TimeSuggestion = {
+        display: string;
+        hour: number;
+        minutes: number;
+      };
+      
+      @Component({
+        components: {
+          Multiselect,
+          CalendarBase,
+        },
+      })
+      export default class Calendar extends Mixins(LocalizationMixins) {
+        @Prop({
+          default: undefined,
+        })
+        readonly options: any;
+      
+        @Prop({
+          required: true,
+        })
+        readonly propertyName!: string;
+      
+        @Prop({
+          default: false,
+        })
+        readonly error!: boolean;
+      
+        dayLabels: string[] = DAY_LABELS.slice();
+      
+        d2gTimeSuggestions: Array&lt;TimeSuggestion&gt; = [];
+      
+        selectedDate = new Date();
+      
+        selectedTime: Time | null = null;
+      
+        minTimeBeforeBooking = 0;
+      
+        minDate = new Date();
+      
+        isTodayDisabled = true;
+      
+        type = { value: '', fullValue: '' };
+      
+        d2gStore = useD2GStore();
+      
+        created() {
+          this.setInitData();
+          this.setType();
+          this.minTimeBeforeBooking = this.isArrivalTime
+            ? this.getZone.minTimeBeforeBooking
+            : this.getZone.g2dMinTimeBeforeBooking;
+      
+          if (
+            this.type.fullValue === 'returnJourney' &&
+            this.d2gStore.outwardJourney
+          ) {
+            this.minDate = new Date(this.d2gStore.outwardJourney.date);
+          }
+      
+          const hour: number = this.timeInTimeZone(new Date()).getHours();
+      
+          if (24 - hour &lt;= this.minTimeBeforeBooking / 60) {
+            this.selectedDate = moment(this.selectedDate).add(1, 'day').toDate();
+          } else {
+            this.isTodayDisabled = false;
+          }
+          if (this.minDate &gt; this.selectedDate) {
+            this.selectedDate = new Date(this.minDate);
+          }
+        }
+      
+        mounted() {
+          const journey = this.getJourney;
+          if (journey) {
+            this.selectedDate = new Date(journey.date);
+            this.selectedTime = journey.time;
+          }
+      
+          this.updateD2GTimeSuggestions(
+            moment(this.selectedDate || undefined).format('YYYY-MM-DD')
+          );
+        }
+      
+        get getJourney(): Journey | undefined {
+          if (this.propertyName === 'outwardJourney') {
+            return this.d2gStore.outwardJourney;
+          }
+          if (this.propertyName === 'returnJourney') {
+            return this.d2gStore.returnJourney;
+          }
+          return undefined;
+        }
+      
+        getDateInTimestamp(
+          date: Date | string,
+          timeZone = this.d2gStore.zone?.timeZone ?? '',
+          format = 'DD/MM/YYYY - HH:mm'
+        ): number {
+          return +moment(date, format).tz(timeZone, true);
+        }
+      
+        isDateValid(journey: Journey, currentJourneyType: string): boolean {
+          const minTimeBeforeBooking: number =
+            this.d2gStore.getTripType === currentJourneyType
+              ? this.getZone.g2dMinTimeBeforeBooking
+              : this.getZone.minTimeBeforeBooking;
+      
+          const minTime: number = +moment() + minTimeBeforeBooking * 60000;
+          const journeyTime: number = this.getDateInTimestamp(journey?.display);
+      
+          return journeyTime &lt; minTime;
+        }
+      
+        setJourney(value: Journey) {
+          const isError = this.isDateValid(value, D2GDirectionEnum.G2D);
+          if (this.propertyName === 'outwardJourney') {
+            this.d2gStore.setOutwardJourney(value);
+            this.d2gStore.setOutwardJourneyError(isError);
+          }
+          if (this.propertyName === 'returnJourney') {
+            this.d2gStore.setReturnJourneyError(isError);
+            this.d2gStore.setReturnJourney(value);
+          }
+        }
+      
+        get isArrivalTime(): boolean {
+          return (
+            (this.d2gStore.isG2D && this.type.value === 'return') ||
+            (this.d2gStore.isD2G && this.type.value === 'outward')
+          );
+        }
+      
+        get timeSuggestions() {
+          const timeSuggestions: Array&lt;TimeSuggestion&gt; = [];
+      
+          this.selectedDate.setHours(0);
+          this.selectedDate.setMinutes(0);
+          this.selectedDate.setSeconds(0);
+          this.selectedDate.setMilliseconds(0);
+      
+          let min = this.timeInTimeZone(
+            moment().add(this.minTimeBeforeBooking, 'minutes').toDate()
+          );
+      
+          if (
+            this.type.fullValue === 'returnJourney' &&
+            this.d2gStore.outwardJourney
+          ) {
+            const newMin: Date = new Date(this.d2gStore.outwardJourney.date);
+            newMin.setHours(this.d2gStore.outwardJourney.time.hour || 0);
+            newMin.setMinutes(this.d2gStore.outwardJourney.time.minutes || 0);
+            min = +newMin &gt; +min ? newMin : min;
+          }
+      
+          const tripScheduleStep: number = this.getZone.tripScheduleStep;
+          const increment: Date = new Date(this.selectedDate);
+      
+          while (increment.getDate() === this.selectedDate.getDate()) {
+            const hour: number = increment.getHours();
+            const minutes: number = increment.getMinutes();
+      
+            if (increment.getTime() &gt; min.getTime()) {
+              timeSuggestions.push({
+                display: `${appendZero(hour)}:${appendZero(minutes)}`,
+                hour,
+                minutes,
+              });
+            }
+      
+            increment.setMinutes(minutes + tripScheduleStep);
+          }
+      
+          return timeSuggestions;
+        }
+      
+        get maxDaysForBooking(): number {
+          return this.getZone.maxNumberOfDaysForFutureBooking;
+        }
+      
+        get todayInZone() {
+          return moment.tz(
+            new Date(),
+            this.getZone.timeZone || DEFAULT_TIME_ZONE_S2S
+          );
+        }
+      
+        setInitData() {
+          this.minDate = new Date(this.todayInZone.format());
+          this.dayLabels = DAY_LABELS.slice();
+        }
+      
+        private isDayDisabled(day: Date): boolean {
+          return moment(day).isAfter(moment().add(MAX_BOOKING_MONTH_TIME, 'month'));
+        }
+      
+        setSelectedDate(day: Day) {
+          if (!(moment().isSame(day.date, 'day') && this.isTodayDisabled)) {
+            this.selectedDate = day.date;
+            this.selectedTime = null;
+            this.updateValue();
+            this.updateD2GTimeSuggestions(day.date.toString());
+          }
+        }
+      
+        async updateD2GTimeSuggestions(date: string) {
+          const zone = this.getZone;
+      
+          if (!zone) {
+            return;
+          }
+      
+          const suggestions = await ScheduleService.getScheduleByZoneId(
+            zone.opsZoneId,
+            moment(new Date(date)).format('YYYY-MM-DD')
+          );
+      
+          this.d2gTimeSuggestions = suggestions
+            .filter(s =&gt;
+              moment
+                .tz(s, zone.timeZone)
+                .isAfter(
+                  moment
+                    .tz(zone.timeZone)
+                    .add(this.minTimeBeforeBooking, 'minutes')
+                    .toDate()
+                )
+            )
+            .map(s =&gt; {
+              const time = moment.tz(s, zone.timeZone);
+      
+              return {
+                display: `${appendZero(time.get('hour'))}:${appendZero(
+                  time.get('minute')
+                )}`,
+                hour: time.get('hour'),
+                minutes: time.get('minute'),
+              };
+            });
+        }
+      
+        onTimeSelected(value: Time | null) {
+          this.selectedTime = value;
+          this.updateValue();
+          if (this.isArrivalTime) {
+            this.$parent?.$emit('info-panel-open', {
+              type: 'openHint',
+              time: this.selectedTime?.display,
+            });
+          }
+        }
+      
+        setType() {
+          if (this.propertyName === 'returnJourney') {
+            this.type = {
+              value: 'return',
+              fullValue: this.propertyName,
+            };
+          } else {
+            this.type = {
+              value: 'outward',
+              fullValue: this.propertyName,
+            };
+          }
+        }
+      
+        timeInTimeZone(date: Date): Date {
+          const timeInZoneD2G = moment(date).tz(this.getZone.timeZone || '');
+          return new Date(timeInZoneD2G.format());
+        }
+      
+        dayIsLimited(day: Day): boolean {
+          if (!this.maxDaysForBooking) {
+            return false;
+          }
+          const todayTimestamp: number = this.timeInTimeZone(new Date()).getTime();
+          const msInDay = 86400000;
+          const dayTimestamp: number = day.date.getTime();
+          // todo: rethink cut 1 day for time validation
+          const maxDaysForBooking: number = this.maxDaysForBooking - 1;
+          if (maxDaysForBooking * msInDay + todayTimestamp &gt; dayTimestamp) {
+            return false;
+          }
+          return true;
+        }
+      
+        private updateValue() {
+          const dateLine = this.selectedDate
+            ? this.selectedDate.toLocaleDateString('fr-lu')
+            : null;
+      
+          const timeLine = this.selectedTime?.display ?? null;
+      
+          const dateTimeLine = `${dateLine} - ${timeLine}`;
+      
+          const display: string =
+            dateLine != null && timeLine != null
+              ? dateTimeLine
+              : (dateLine ?? '') + (timeLine ?? '');
+      
+          const value: Journey = {
+            date: this.selectedDate,
+            time: this.selectedTime as Time,
+            display,
+          };
+      
+          this.setJourney(value);
+      
+          if (
+            this.type.value === 'outward' &&
+            this.d2gStore.returnJourney &&
+            NormalizeDateTime(value.date, value.time, this.getZone.timeZone || '') &gt;=
+              NormalizeDateTime(
+                this.d2gStore.returnJourney.date,
+                this.d2gStore.returnJourney.time,
+                this.getZone.timeZone
+              )
+          ) {
+            this.d2gStore.setReturnJourney(undefined);
+          }
+        }
+      
+        get getZone(): OpsZone {
+          return this.d2gStore.zone as OpsZone;
+        }
+      }
+      &lt;/script&gt;
+      
+    </code></pre>
+</div>
+
+<div id="tab3" class="tab-content">
+    <h2>Package.json</h2>
+    <pre><code class="language-html">
+        {
+            "name": "booking-web-app",
+            "version": "1.0.0",
+            "private": true,
+            "description": "Flibco Booking Web Application",
+            "scripts": {
+              "postinstall": "patch-package",
+              "build": "vue-cli-service lint --no-fix --max-warnings 0 && vue-cli-service build",
+              "build:local": "vue-cli-service lint --fix && vue-cli-service build",
+              "test:unit": "jest --verbose",
+              "jest:updateSnapshot": "jest --updateSnapshot",
+              "test:e2e": "cypress run",
+              "eslint": "eslint ./src/**/*.{vue,ts} --ignore-pattern coverage",
+              "eslint:fix": "eslint ./src/**/*.{vue,ts} --fix --ignore-pattern coverage",
+              "lint": "vue-cli-service lint --no-fix",
+              "lint:fix": "vue-cli-service lint --fix",
+              "lint:pipeline": "vue-cli-service lint --no-fix --max-warnings 0",
+              "build:dev1": "eslint ./src/**/*.{vue,js,ts} && vue-cli-service build --mode dev1",
+              "cy:open": "cypress open",
+              "dev": "vue-cli-service serve --open --mode dev2"
+            },
+            "dependencies": {
+              "@stripe/stripe-js": "1.54.2",
+              "@vue-stripe/vue-stripe": "4.5.0",
+              "axios": "1.6.8",
+              "bootstrap": "4.6.2",
+              "braintree-web": "3.97.1",
+              "braintree-web-drop-in": "1.40.2",
+              "circular-dependency-plugin": "^5.2.2",
+              "core-js": "3.31.1",
+              "countries-list": "2.6.1",
+              "date-fns": "2.30.0",
+              "date-fns-tz": "2.0.0",
+              "debounce": "1.2.1",
+              "flag-icons": "6.7.0",
+              "flibco-ui-shared": "0.0.1",
+              "flush-promises": "^1.0.2",
+              "font-awesome": "4.7.0",
+              "leaflet": "1.9.4",
+              "lodash": "4.17.21",
+              "pinia": "2.1.6",
+              "pinia-plugin-persistedstate": "3.2.1",
+              "point-in-polygon": "1.1.0",
+              "select2-vue-component": "6.1.1",
+              "url-search-params-polyfill": "8.2.5",
+              "v-toaster": "1.0.3",
+              "v-tooltip": "2.1.3",
+              "vee-validate": "2.2.15",
+              "vue": "2.7.16",
+              "vue-carousel": "0.18.0",
+              "vue-class-component": "7.2.6",
+              "vue-highlight-words": "1.2.0",
+              "vue-i18n": "8.28.2",
+              "vue-i18n-composable": "2.0.0",
+              "vue-js-popover": "1.2.1",
+              "vue-js-toggle-button": "1.3.3",
+              "vue-meta": "2.4.0",
+              "vue-multiselect": "2.1.7",
+              "vue-property-decorator": "9.1.2",
+              "vue-recaptcha": "2.0.3",
+              "vue-router": "3.6.5",
+              "vue-scrollto": "2.20.0",
+              "vue-toasted": "1.1.28",
+              "vuetify": "^3.3.20",
+              "vue2-gmap-custom-marker": "6.1.1",
+              "vue2-google-maps": "0.10.7",
+              "vue2-leaflet": "2.7.1",
+              "vue2-perfect-scrollbar": "1.5.56",
+              "vuejs-datepicker": "1.6.2",
+              "moment": "2.29.4",
+              "moment-timezone": "0.5.43"
+            },
+            "devDependencies": {
+              "@kazupon/vue-i18n-loader": "0.4.1",
+              "@types/braintree-web-drop-in": "1.39.0",
+              "@types/debounce": "1.2.1",
+              "@types/google.maps": "3.54.0",
+              "@types/jest": "29.5.4",
+              "@types/leaflet": "1.9.4",
+              "@types/lodash": "4.14.202",
+              "@types/node": "20.12.2",
+              "@types/point-in-polygon": "1.1.1",
+              "@typescript-eslint/eslint-plugin": "5.62.0",
+              "@typescript-eslint/parser": "5.62.0",
+              "@vue/cli-plugin-babel": "5.0.8",
+              "@vue/cli-plugin-eslint": "5.0.8",
+              "@vue/cli-plugin-router": "5.0.8",
+              "@vue/cli-plugin-typescript": "5.0.8",
+              "@vue/cli-service": "5.0.8",
+              "@vue/eslint-config-prettier": "7.1.0",
+              "@vue/eslint-config-typescript": "11.0.3",
+              "@vue/test-utils": "1.3.6",
+              "@vue/vue2-jest": "29.2.6",
+              "cypress": "13.7.3",
+              "eslint": "8.48.0",
+              "eslint-plugin-cypress": "2.14.0",
+              "eslint-plugin-prettier": "4.2.1",
+              "eslint-plugin-vue": "9.17.0",
+              "jest": "29.7.0",
+              "jest-environment-jsdom": "29.6.4",
+              "patch-package": "7.0.2",
+              "prettier": "2.8.8",
+              "sass": "1.66.1",
+              "sass-loader": "13.3.2",
+              "stylelint": "15.10.3",
+              "stylelint-config-recommended-scss": "12.0.0",
+              "stylelint-config-standard": "33.0.0",
+              "stylelint-scss": "5.1.0",
+              "ts-jest": "29.1.1",
+              "typescript": "5.4.5",
+              "vue-template-compiler": "2.7.16"
+            }
+          }
+          
+    </code></pre>
+</div>
+ <!-- Highlight.js script -->
+ <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"></script>
+ <!-- <script>hljs.highlightAll();</script> -->
+ <script>
+   document.addEventListener("DOMContentLoaded", (event) => {
+     document.querySelectorAll('pre code').forEach((block) => {
+       hljs.highlightBlock(block);
+     });
+   });
+ </script>
+<script>
+    function openTab(tabId) {
+        // Hide all tab contents
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach(content => {
+            content.classList.remove('active');
+        });
+
+        // Show the selected tab content
+        const selectedTab = document.getElementById(tabId);
+        if (selectedTab) {
+            selectedTab.classList.add('active');
+        }
+    }
+
+    // Optionally, open the first tab by default
+    openTab('tab1');
+</script>
+
+</body>
+</html>

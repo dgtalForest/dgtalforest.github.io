@@ -1,27 +1,27 @@
-<template>
-  <div class="form-wrapper">
-    <LoadingSpinner
+&lt;template&gt;
+  &lt;div class="form-wrapper"&gt;
+    &lt;LoadingSpinner
       added-classes="spinner--bus"
       v-if="isLoading"
       src="arrival_animation.gif"
-    />
-    <div class="form">
-      <ImageWrapper classes="logo" src="d2g-logo.png" alt="door2gate" />
-      <SwitchBookingType @reset-gtm-data="resetGtmData" />
-      <div v-if="!isMobile" class="desktop-location-wrapper">
-        <DirectionSelection
+    /&gt;
+    &lt;div class="form"&gt;
+      &lt;ImageWrapper classes="logo" src="d2g-logo.png" alt="door2gate" /&gt;
+      &lt;SwitchBookingType @reset-gtm-data="resetGtmData" /&gt;
+      &lt;div v-if="!isMobile" class="desktop-location-wrapper"&gt;
+        &lt;DirectionSelection
           class="location-wrapper"
           ref="directionSelection"
           :location-properties="locationProperties"
           @on-address-selected="onAddressSelected"
           @click="clear"
-        />
-        <svg class="swap" width="32" height="32" @click="swap">
-          <use xlink:href="#locate" />
-        </svg>
-      </div>
-      <div class="location-wrapper" v-else>
-        <ValueInput
+        /&gt;
+        &lt;svg class="swap" width="32" height="32" @click="swap"&gt;
+          &lt;use xlink:href="#locate" /&gt;
+        &lt;/svg&gt;
+      &lt;/div&gt;
+      &lt;div class="location-wrapper" v-else&gt;
+        &lt;ValueInput
           v-for="(propertyName, index) in locationProperties"
           :key="propertyName"
           :property="getPropertyFromStore(propertyName)"
@@ -34,40 +34,40 @@
             isLocationTopPosition(index),
           ]"
           :classes="{ 'input-semibold': true }"
-        >
-          <template>
-            <ImageWrapper
+        &gt;
+          &lt;template&gt;
+            &lt;ImageWrapper
               :src="airportIcon(propertyName)"
               :alt="propertyName"
-            />
-            <svg
+            /&gt;
+            &lt;svg
               v-show="getDepartureOrDestination(propertyName)"
               width="26"
               height="26"
               class="close"
               @click="clear(propertyName)"
-            >
-              <use xlink:href="#plus" />
-            </svg>
-          </template>
-        </ValueInput>
-        <svg class="swap" width="32" height="32" @click="swap">
-          <use xlink:href="#locate" />
-        </svg>
-      </div>
-      <ShuttleTypeSwitcher :zone="d2gStore.zone" />
-      <BookingDates :currentProperty="currentProperty" />
-      <div class="round-wrap">
-        <RoundTrip
+            &gt;
+              &lt;use xlink:href="#plus" /&gt;
+            &lt;/svg&gt;
+          &lt;/template&gt;
+        &lt;/ValueInput&gt;
+        &lt;svg class="swap" width="32" height="32" @click="swap"&gt;
+          &lt;use xlink:href="#locate" /&gt;
+        &lt;/svg&gt;
+      &lt;/div&gt;
+      &lt;ShuttleTypeSwitcher :zone="d2gStore.zone" /&gt;
+      &lt;BookingDates :currentProperty="currentProperty" /&gt;
+      &lt;div class="round-wrap"&gt;
+        &lt;RoundTrip
           :info-component="infoComponent"
           :disabled-prop="'returnJourney'"
           :round-trip="d2gStore.isRoundTrip"
           @disable="disableRoundTripField"
           @toggle="toogleRoundTrip"
-        />
-      </div>
-      <div class="traveller-wrapper">
-        <ValueInput
+        /&gt;
+      &lt;/div&gt;
+      &lt;div class="traveller-wrapper"&gt;
+        &lt;ValueInput
           class="full"
           :placeholder="t('passengers.multiValue')"
           :property="getPropertyFromStore('passengers')"
@@ -77,33 +77,33 @@
             active: isPassengers(currentProperty),
             disabled: !d2gStore.zone,
           }"
-        >
-          <ImageWrapper src="traveller.svg" alt="traveller" />
-        </ValueInput>
-      </div>
-      <div class="button-wrap">
-        <CButton
+        &gt;
+          &lt;ImageWrapper src="traveller.svg" alt="traveller" /&gt;
+        &lt;/ValueInput&gt;
+      &lt;/div&gt;
+      &lt;div class="button-wrap"&gt;
+        &lt;CButton
           data-test="button-wrap"
           :disabled="!d2gStore.isFormValid"
           :text="t('search')"
           @click="bookNow"
-        />
-      </div>
-    </div>
-    <div v-if="infoComponent" class="info-panel" data-test="info-panel">
-      <div class="info-component-wrapper">
-        <CloseButton @close-click="closeInfoPanel" />
-        <p
+        /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;div v-if="infoComponent" class="info-panel" data-test="info-panel"&gt;
+      &lt;div class="info-component-wrapper"&gt;
+        &lt;CloseButton @close-click="closeInfoPanel" /&gt;
+        &lt;p
           v-if="infoComponent?.title"
           v-show="
             infoComponent?.componentName.indexOf('map-wrapper') === -1 &&
             infoComponent?.componentName.indexOf('mapWrapper') === -1
           "
           class="title"
-        >
+        &gt;
           {{ t(infoComponent.title) }}
-        </p>
-        <component
+        &lt;/p&gt;
+        &lt;component
           ref="infoComponentRef"
           :is="infoComponent.component"
           :key="infoComponent.propertyName"
@@ -111,13 +111,13 @@
           :options="infoComponent.options"
           :error="infoComponentError"
           :is-mobile-stops-search="isMobile"
-        />
-      </div>
-    </div>
-  </div>
-</template>
+        /&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/template&gt;
 
-<script setup lang="ts">
+&lt;script setup lang="ts"&gt;
 import { useD2GStore } from 'flibco-ui-shared/src/store/d2g-store';
 import { onMounted, ref, computed, defineEmits, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router/composables';
@@ -159,9 +159,9 @@ const router = useRouter();
 const route = useRoute();
 const { setGtmFunnelData } = useGtmStore();
 
-const infoComponent = ref<any>(null);
-const infoComponentRef = ref<any>(null);
-const directionSelection = ref<DirectionSelection | null>(null);
+const infoComponent = ref&lt;any&gt;(null);
+const infoComponentRef = ref&lt;any&gt;(null);
+const directionSelection = ref&lt;DirectionSelection | null&gt;(null);
 
 const {
   getZone,
@@ -179,20 +179,20 @@ const { prefillByQuery } = usePrefillData();
 
 const { disableRoundTripField, toogleRoundTrip } = useRoundTripBookingForm();
 const { isMobile } = useViewport();
-const currentProperty = ref<string>('');
-const isLoading = ref<boolean>(false);
+const currentProperty = ref&lt;string&gt;('');
+const isLoading = ref&lt;boolean&gt;(false);
 const locationProperties = ['departure', 'destination'];
 
 const { on, rootEmit } = useEmitter();
 
 init();
 
-const mounted = async () => {
+const mounted = async () =&gt; {
   await prefillByQuery();
   on('info-panel-open', infoPanelComponentOpenHandler);
 };
 
-onMounted(() => {
+onMounted(() =&gt; {
   mounted();
 });
 
@@ -211,7 +211,7 @@ function infoPanelComponentOpenHandler(data: any) {
       const locationSearchComponent = directionSelection.value;
       if (locationSearchComponent) {
         const selectedSearchComponent = locationSearchComponent?.$children.find(
-          (child: unknown) =>
+          (child: unknown) =&gt;
             (child as { propertyName: string })?.propertyName ===
             data.propertyName
         );
@@ -272,7 +272,7 @@ function swap() {
   checkDate();
 }
 
-async function checkBookingAllowed(): Promise<boolean> {
+async function checkBookingAllowed(): Promise&lt;boolean&gt; {
   const destination = d2gStore.destination as Gate;
   const departure = d2gStore.departure as Gate;
   let door: Destination | Gate;
@@ -283,8 +283,8 @@ async function checkBookingAllowed(): Promise<boolean> {
     door = departure;
     gateId =
       getZone.value.gates
-        .filter((gate: GateDto) => gate.enabled)
-        .find((gate: GateDto) => gate.code === destination.name)?.gateId ?? '';
+        .filter((gate: GateDto) =&gt; gate.enabled)
+        .find((gate: GateDto) =&gt; gate.code === destination.name)?.gateId ?? '';
   } else {
     door =
       d2gStore.getAirportStopDirection === 'departure'
@@ -292,8 +292,8 @@ async function checkBookingAllowed(): Promise<boolean> {
         : departure;
     gateId =
       getZone.value.gates
-        .filter((gate: GateDto) => gate.enabled)
-        .find((gate: GateDto) => gate.code === d2gStore.gate?.name)?.gateId ??
+        .filter((gate: GateDto) =&gt; gate.enabled)
+        .find((gate: GateDto) =&gt; gate.code === d2gStore.gate?.name)?.gateId ??
       '';
   }
 
@@ -427,7 +427,7 @@ async function bookNow() {
   isLoading.value = false;
 }
 
-const infoComponentError = computed<boolean>(() => {
+const infoComponentError = computed&lt;boolean&gt;(() =&gt; {
   return (
     (infoComponent.value?.propertyName === 'outwardJourney' &&
       d2gStore.isOutwardJourneyError) ||
@@ -452,8 +452,8 @@ function onAddressSelected(address: Gate) {
 }
 
 watch(
-  () => d2gStore.destination as Gate | Destination,
-  (newVal: Gate | Destination) => {
+  () =&gt; d2gStore.destination as Gate | Destination,
+  (newVal: Gate | Destination) =&gt; {
     setGtmFunnelData({
       fromDeparture: d2gStore.departure ?? null,
       toArrival: newVal ?? null,
@@ -465,8 +465,8 @@ watch(
 );
 
 watch(
-  () => d2gStore.departure as Gate | Destination,
-  (newVal: Gate | Destination) => {
+  () =&gt; d2gStore.departure as Gate | Destination,
+  (newVal: Gate | Destination) =&gt; {
     setGtmFunnelData({
       fromDeparture: newVal ?? null,
       toArrival: d2gStore.destination ?? null,
@@ -476,8 +476,8 @@ watch(
     immediate: true,
   }
 );
-</script>
-<style lang="scss" scoped>
+&lt;/script&gt;
+&lt;style lang="scss" scoped&gt;
 @import 'flibco-ui-shared/src/assets/style/_variables.scss';
 
 .form-wrapper {
@@ -703,4 +703,4 @@ watch(
     }
   }
 }
-</style>
+&lt;/style&gt;

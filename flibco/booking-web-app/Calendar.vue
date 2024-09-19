@@ -1,5 +1,5 @@
-<template>
-  <CalendarBase
+&lt;template&gt;
+  &lt;CalendarBase
     :is-day-disabled="isDayDisabled"
     :journey="getJourney"
     :min-date="minDate"
@@ -10,22 +10,22 @@
     :selected-time="selectedTime"
     @set-selected-date="setSelectedDate"
     @confirm="
-      () => {
+      () =&gt; {
         updateValue();
         $parent.$emit('info-panel-open', null);
       }
     "
-  >
-    <div class="calendar-bottom-wrap">
-      <div class="calendar-enough-time" v-if="!isArrivalTime">
-        <ImageWrapper
+  &gt;
+    &lt;div class="calendar-bottom-wrap"&gt;
+      &lt;div class="calendar-enough-time" v-if="!isArrivalTime"&gt;
+        &lt;ImageWrapper
           class="calendar-like-person"
           src="like-person.svg"
           alt="next"
-        />
-        <span v-html="$t('enough-time-between-arrival')" />
-      </div>
-      <Multiselect
+        /&gt;
+        &lt;span v-html="$t('enough-time-between-arrival')" /&gt;
+      &lt;/div&gt;
+      &lt;Multiselect
         id="time-search"
         v-model="selectedTime"
         :options="d2gTimeSuggestions"
@@ -41,35 +41,35 @@
         class="d2g d2g-time-multiselect"
         :class="{ error: error }"
         @select="onTimeSelected"
-      >
-        <template #selection>
-          <div class="multiselect-left">
-            <svg width="32" height="32" viewBox="0 0 32 32">
-              <use xlink:href="#airport-icon" />
-            </svg>
-          </div>
-        </template>
-      </Multiselect>
-      <div class="estimated-time" :class="{ 'drop-off': !isArrivalTime }">
-        <div class="estimated-time-inner">
-          <svg
+      &gt;
+        &lt;template #selection&gt;
+          &lt;div class="multiselect-left"&gt;
+            &lt;svg width="32" height="32" viewBox="0 0 32 32"&gt;
+              &lt;use xlink:href="#airport-icon" /&gt;
+            &lt;/svg&gt;
+          &lt;/div&gt;
+        &lt;/template&gt;
+      &lt;/Multiselect&gt;
+      &lt;div class="estimated-time" :class="{ 'drop-off': !isArrivalTime }"&gt;
+        &lt;div class="estimated-time-inner"&gt;
+          &lt;svg
             xmlns="http://www.w3.org/2000/svg"
             width="32"
             height="32"
             viewBox="0 0 32 32"
-          >
-            <use xlink:href="#bus-pick-up" />
-          </svg>
-          <div>
-            <p class="estimated-time-text-top">
+          &gt;
+            &lt;use xlink:href="#bus-pick-up" /&gt;
+          &lt;/svg&gt;
+          &lt;div&gt;
+            &lt;p&gt; class="estimated-time-text-top"&gt;
               {{ $t(isArrivalTime ? 'pick-up-time' : 'drop-off-time') }}
-            </p>
-            <p class="estimated-time-text-bottom">
+            &lt;/p&gt;
+            &lt;p&gt; class="estimated-time-text-bottom"&gt;
               {{ $t('will-be-defined') }}
-            </p>
-          </div>
-        </div>
-        <svg
+            &lt;/p&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;svg
           v-tooltip.left="{
             content: $t(
               isArrivalTime ? 'pick-up-time-message' : 'drop-off-time-message'
@@ -80,15 +80,15 @@
           width="20"
           height="20"
           viewBox="0 0 18 18"
-        >
-          <use xlink:href="#distribusion-info-grey" />
-        </svg>
-      </div>
-    </div>
-  </CalendarBase>
-</template>
+        &gt;
+          &lt;use xlink:href="#distribusion-info-grey" /&gt;
+        &lt;/svg&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/CalendarBase&gt;
+&lt;/template&gt;
 
-<script lang="ts">
+&lt;script&gt; lang="ts"&gt;
 import { Component, Prop, Mixins } from 'vue-property-decorator';
 
 // TODO remove
@@ -114,8 +114,8 @@ import { useD2GStore } from 'flibco-ui-shared/src/store/d2g-store';
 import CalendarBase from 'flibco-ui-shared/src/components/CalendarBase.vue';
 import { D2GDirectionEnum } from 'flibco-ui-shared/src/models/booking/Booking';
 
-const appendZero = (item: number) =>
-  `${item}`?.length < 2 ? `0${item}` : `${item}`;
+const appendZero = (item: number) =&gt;
+  `${item}`?.length &lt; 2 ? `0${item}` : `${item}`;
 
 type TimeSuggestion = {
   display: string;
@@ -147,7 +147,7 @@ export default class Calendar extends Mixins(LocalizationMixins) {
 
   dayLabels: string[] = DAY_LABELS.slice();
 
-  d2gTimeSuggestions: Array<TimeSuggestion> = [];
+  d2gTimeSuggestions: Array&lt;TimeSuggestion&gt; = [];
 
   selectedDate = new Date();
 
@@ -179,12 +179,12 @@ export default class Calendar extends Mixins(LocalizationMixins) {
 
     const hour: number = this.timeInTimeZone(new Date()).getHours();
 
-    if (24 - hour <= this.minTimeBeforeBooking / 60) {
+    if (24 - hour &lt;= this.minTimeBeforeBooking / 60) {
       this.selectedDate = moment(this.selectedDate).add(1, 'day').toDate();
     } else {
       this.isTodayDisabled = false;
     }
-    if (this.minDate > this.selectedDate) {
+    if (this.minDate &gt; this.selectedDate) {
       this.selectedDate = new Date(this.minDate);
     }
   }
@@ -228,7 +228,7 @@ export default class Calendar extends Mixins(LocalizationMixins) {
     const minTime: number = +moment() + minTimeBeforeBooking * 60000;
     const journeyTime: number = this.getDateInTimestamp(journey?.display);
 
-    return journeyTime < minTime;
+    return journeyTime &lt; minTime;
   }
 
   setJourney(value: Journey) {
@@ -251,7 +251,7 @@ export default class Calendar extends Mixins(LocalizationMixins) {
   }
 
   get timeSuggestions() {
-    const timeSuggestions: Array<TimeSuggestion> = [];
+    const timeSuggestions: Array&lt;TimeSuggestion&gt; = [];
 
     this.selectedDate.setHours(0);
     this.selectedDate.setMinutes(0);
@@ -269,7 +269,7 @@ export default class Calendar extends Mixins(LocalizationMixins) {
       const newMin: Date = new Date(this.d2gStore.outwardJourney.date);
       newMin.setHours(this.d2gStore.outwardJourney.time.hour || 0);
       newMin.setMinutes(this.d2gStore.outwardJourney.time.minutes || 0);
-      min = +newMin > +min ? newMin : min;
+      min = +newMin &gt; +min ? newMin : min;
     }
 
     const tripScheduleStep: number = this.getZone.tripScheduleStep;
@@ -279,7 +279,7 @@ export default class Calendar extends Mixins(LocalizationMixins) {
       const hour: number = increment.getHours();
       const minutes: number = increment.getMinutes();
 
-      if (increment.getTime() > min.getTime()) {
+      if (increment.getTime() &gt; min.getTime()) {
         timeSuggestions.push({
           display: `${appendZero(hour)}:${appendZero(minutes)}`,
           hour,
@@ -335,7 +335,7 @@ export default class Calendar extends Mixins(LocalizationMixins) {
     );
 
     this.d2gTimeSuggestions = suggestions
-      .filter(s =>
+      .filter(s =&gt;
         moment
           .tz(s, zone.timeZone)
           .isAfter(
@@ -345,7 +345,7 @@ export default class Calendar extends Mixins(LocalizationMixins) {
               .toDate()
           )
       )
-      .map(s => {
+      .map(s =&gt; {
         const time = moment.tz(s, zone.timeZone);
 
         return {
@@ -397,7 +397,7 @@ export default class Calendar extends Mixins(LocalizationMixins) {
     const dayTimestamp: number = day.date.getTime();
     // todo: rethink cut 1 day for time validation
     const maxDaysForBooking: number = this.maxDaysForBooking - 1;
-    if (maxDaysForBooking * msInDay + todayTimestamp > dayTimestamp) {
+    if (maxDaysForBooking * msInDay + todayTimestamp &gt; dayTimestamp) {
       return false;
     }
     return true;
@@ -428,7 +428,7 @@ export default class Calendar extends Mixins(LocalizationMixins) {
     if (
       this.type.value === 'outward' &&
       this.d2gStore.returnJourney &&
-      NormalizeDateTime(value.date, value.time, this.getZone.timeZone || '') >=
+      NormalizeDateTime(value.date, value.time, this.getZone.timeZone || '') &gt;=
         NormalizeDateTime(
           this.d2gStore.returnJourney.date,
           this.d2gStore.returnJourney.time,
@@ -443,4 +443,4 @@ export default class Calendar extends Mixins(LocalizationMixins) {
     return this.d2gStore.zone as OpsZone;
   }
 }
-</script>
+&lt;/script&gt;
