@@ -1,0 +1,97 @@
+&lt;div class="flex items-center justify-between"&gt;
+  &lt;h4&gt; class="mb-5 text-lg font-semibold leading-6 text-center grow"&gt;
+    Importing Document
+  &lt;/h4&gt;
+  &lt;button&gt;
+    type="button"
+    class="flex-shrink-0 btn-close"
+    aria-label="Close"
+    (click)="activeModal.dismiss('Cross click')"
+  &gt;&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="modal-body"&gt;
+  &lt;ul
+    ngbNav
+    #nav="ngbNav"
+    [(activeId)]="active"
+    class="flex justify-center gap-20 mb-10"
+  &gt;
+    &lt;li
+      [ngbNavItem]="1"
+      class="wizard-nav-item"
+      [ngClass]="{ 'passed-nav-item': active &gt; 1 }"
+    &gt;
+      &lt;button&gt;
+        ngbNavLink
+        class="pb-1 mx-3 wizard-btn"
+        [ngClass]="{ 'passed-nav-btn': active &gt; 1 }"
+      &gt;&lt;/button&gt;
+      &lt;h6&gt; class="absolute text-xs leading-4"&gt;Upload&lt;/h6&gt;
+      &lt;ng-template ngbNavContent&gt;
+        &lt;app-upload-form&gt;
+          *ngIf="importStep === 1"
+          (changeStep)="changeImportStep($event)"
+        &gt;&lt;/app-upload-form&gt;
+        &lt;app-upload-sheets-setting&gt;
+          *ngIf="importStep === 2"
+          (changeStep)="changeImportStep($event)"
+        &gt;&lt;/app-upload-sheets-setting&gt;
+      &lt;/ng-template&gt;
+    &lt;/li&gt;
+    &lt;li
+      [ngbNavItem]="2"
+      class="wizard-nav-item"
+      [ngClass]="{ 'passed-nav-item': active &gt; 2 }"
+    &gt;
+      &lt;button&gt;
+        ngbNavLink
+        class="pb-1 mx-3 wizard-btn"
+        [ngClass]="{ 'passed-nav-btn': active &gt; 2 }"
+      &gt;&lt;/button&gt;
+      &lt;h6&gt; class="absolute text-xs leading-4"&gt;Setting&lt;/h6&gt;
+      &lt;ng-template ngbNavContent&gt;
+        &lt;div class="relative"&gt;
+          &lt;div&gt; class="absolute toast left-12 top-28"&gt;&lt;/div&gt;
+        &lt;/div&gt;
+        &lt;p&gt; class="mb-10"&gt;Preview the result and tap “import Now”&lt;/p&gt;
+        &lt;div
+          class="flex items-center justify-between px-4 py-4 mb-10 rounded-md bg-mediumGreen"
+        &gt;
+          &lt;img
+            src="assets/icons/GreenTick.svg"
+            alt="success alert"
+            class="p-2 mr-3"
+          /&gt;
+          &lt;p&gt;2 sheets Successfully uploaded&lt;/p&gt;
+          &lt;img
+            src="assets/icons/GreenClose.svg"
+            alt="success alert"
+            class="p-2"
+          /&gt;
+        &lt;/div&gt;
+        &lt;app-address-routes-form&gt;
+          (changeActiveTab)="active = $event"
+        &gt;&lt;/app-address-routes-form&gt;
+      &lt;/ng-template&gt;
+    &lt;/li&gt;
+    &lt;li
+      [ngbNavItem]="3"
+      class="wizard-nav-item"
+      [ngClass]="{ 'passed-nav-item': active &gt; 3 }"
+    &gt;
+      &lt;button&gt;
+        ngbNavLink
+        class="pb-1 mx-3 wizard-btn"
+        [ngClass]="{ 'passed-nav-btn': active &gt; 3 }"
+      &gt;&lt;/button&gt;
+      &lt;h6&gt; class="absolute text-xs leading-4"&gt;Import&lt;/h6&gt;
+      &lt;ng-template ngbNavContent&gt;
+        &lt;p&gt;Lorem Ipsum...&lt;/p&gt;
+      &lt;/ng-template&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+
+  &lt;div&gt; [ngbNavOutlet]="nav" class="mt-2"&gt;&lt;/div&gt;
+  &lt;!-- &lt;svg-icon&gt; src="assets/icons/UploadFile.svg" [svgClass]="'h-5 w-5'"&gt;
+    &lt;/svg-icon&gt; --&gt;
+&lt;/div&gt;

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Route Finder App</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/styles/default.min.css"
+    />
+    <style>
+      .tab-container {
+        display: flex;
+        cursor: pointer;
+        background: #f1f1f1;
+        padding: 10px;
+      }
+      .tab {
+        flex: 1;
+        padding: 10px;
+        text-align: center;
+        background: #ddd;
+        border: 1px solid #ccc;
+      }
+      .tab-content {
+        display: none;
+        padding: 20px;
+        border: 1px solid #ccc;
+        border-top: none;
+      }
+      .tab-content.active {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Route Finder App - Code snippets</h1>
+
+    <div class="tab-container">
+      <div class="tab" onclick="openTab('tab1')">import-excel-wizard.component.ts</div>
+      <div class="tab" onclick="openTab('tab2')">import-excel-wizard.component.html</div>
+      <div class="tab" onclick="openTab('tab3')">import-excel-wizard.component.scss</div>
+      <div class="tab" onclick="openTab('tab4')">package.json</div>
+    </div>
+
+    <div id="tab1" class="tab-content">
+      <h2>import-excel-wizard.component.ts</h2>
+      <pre><code class="language-javascript">
+        import { Component, inject, Input } from '@angular/core';
+        import { NgbActiveModal, NgbModal } from '@ng-bootstrap/ng-bootstrap';
+        import { NgbNavModule } from '@ng-bootstrap/ng-bootstrap';
+        import { UploadFormComponent } from '../upload-form/upload-form.component';
+        import { UploadSheetsSettingComponent } from '../upload-sheets-setting/upload-sheets-setting.component';
+        import { NgClass, NgIf } from '@angular/common';
+        import { AngularSvgIconModule } from 'angular-svg-icon';
+        import { AddressRoutesFormComponent } from '../address-routes-form/address-routes-form.component';
+        
+        @Component({
+          selector: 'app-import-wizard',
+          standalone: true,
+          imports: [
+            NgbNavModule,
+            NgClass,
+            NgIf,
+            UploadFormComponent,
+            UploadSheetsSettingComponent,
+            AddressRoutesFormComponent,
+            AngularSvgIconModule,
+          ],
+          templateUrl: './import-excel-wizard.component.html',
+          styleUrl: './import-excel-wizard.component.scss',
+        })
+        export class ImportExcelWizardComponent {
+          activeModal = inject(NgbActiveModal);
+          active = 1;
+          importStep = 1; // Upload page two steps
+        
+          @Input() name: string | undefined;
+        
+          changeImportStep(value: number) {
+            if (value === 3) {
+              this.active = 2;
+              this.importStep = 1;
+            } else {
+              this.importStep = value;
+            }
+          }
+        }
+        
+        
+      </code></pre>
+    </div>
+
+    <div id="tab2" class="tab-content">
+      <h2>import-excel-wizard.component.html</h2>
+      <pre><code class="language-html">
+        &lt;div class="flex items-center justify-between"&gt;
+        &lt;h4&gt; class="mb-5 text-lg font-semibold leading-6 text-center grow"&gt;
+          Importing Document
+        &lt;/h4&gt;
+        &lt;button&gt;
+          type="button"
+          class="flex-shrink-0 btn-close"
+          aria-label="Close"
+          (click)="activeModal.dismiss('Cross click')"
+        &gt;&lt;/button&gt;
+      &lt;/div&gt;
+      &lt;div class="modal-body"&gt;
+        &lt;ul
+          ngbNav
+          #nav="ngbNav"
+          [(activeId)]="active"
+          class="flex justify-center gap-20 mb-10"
+        &gt;
+          &lt;li
+            [ngbNavItem]="1"
+            class="wizard-nav-item"
+            [ngClass]="{ 'passed-nav-item': active &gt; 1 }"
+          &gt;
+            &lt;button&gt;
+              ngbNavLink
+              class="pb-1 mx-3 wizard-btn"
+              [ngClass]="{ 'passed-nav-btn': active &gt; 1 }"
+            &gt;&lt;/button&gt;
+            &lt;h6&gt; class="absolute text-xs leading-4"&gt;Upload&lt;/h6&gt;
+            &lt;ng-template ngbNavContent&gt;
+              &lt;app-upload-form&gt;
+                *ngIf="importStep === 1"
+                (changeStep)="changeImportStep($event)"
+              &gt;&lt;/app-upload-form&gt;
+              &lt;app-upload-sheets-setting&gt;
+                *ngIf="importStep === 2"
+                (changeStep)="changeImportStep($event)"
+              &gt;&lt;/app-upload-sheets-setting&gt;
+            &lt;/ng-template&gt;
+          &lt;/li&gt;
+          &lt;li
+            [ngbNavItem]="2"
+            class="wizard-nav-item"
+            [ngClass]="{ 'passed-nav-item': active &gt; 2 }"
+          &gt;
+            &lt;button&gt;
+              ngbNavLink
+              class="pb-1 mx-3 wizard-btn"
+              [ngClass]="{ 'passed-nav-btn': active &gt; 2 }"
+            &gt;&lt;/button&gt;
+            &lt;h6&gt; class="absolute text-xs leading-4"&gt;Setting&lt;/h6&gt;
+            &lt;ng-template ngbNavContent&gt;
+              &lt;div class="relative"&gt;
+                &lt;div&gt; class="absolute toast left-12 top-28"&gt;&lt;/div&gt;
+              &lt;/div&gt;
+              &lt;p&gt; class="mb-10"&gt;Preview the result and tap “import Now”&lt;/p&gt;
+              &lt;div
+                class="flex items-center justify-between px-4 py-4 mb-10 rounded-md bg-mediumGreen"
+              &gt;
+                &lt;img
+                  src="assets/icons/GreenTick.svg"
+                  alt="success alert"
+                  class="p-2 mr-3"
+                /&gt;
+                &lt;p&gt;2 sheets Successfully uploaded&lt;/p&gt;
+                &lt;img
+                  src="assets/icons/GreenClose.svg"
+                  alt="success alert"
+                  class="p-2"
+                /&gt;
+              &lt;/div&gt;
+              &lt;app-address-routes-form&gt;
+                (changeActiveTab)="active = $event"
+              &gt;&lt;/app-address-routes-form&gt;
+            &lt;/ng-template&gt;
+          &lt;/li&gt;
+          &lt;li
+            [ngbNavItem]="3"
+            class="wizard-nav-item"
+            [ngClass]="{ 'passed-nav-item': active &gt; 3 }"
+          &gt;
+            &lt;button&gt;
+              ngbNavLink
+              class="pb-1 mx-3 wizard-btn"
+              [ngClass]="{ 'passed-nav-btn': active &gt; 3 }"
+            &gt;&lt;/button&gt;
+            &lt;h6&gt; class="absolute text-xs leading-4"&gt;Import&lt;/h6&gt;
+            &lt;ng-template ngbNavContent&gt;
+              &lt;p&gt;Lorem Ipsum...&lt;/p&gt;
+            &lt;/ng-template&gt;
+          &lt;/li&gt;
+        &lt;/ul&gt;
+      
+        &lt;div&gt; [ngbNavOutlet]="nav" class="mt-2"&gt;&lt;/div&gt;
+        &lt;!-- &lt;svg-icon&gt; src="assets/icons/UploadFile.svg" [svgClass]="'h-5 w-5'"&gt;
+          &lt;/svg-icon&gt; --&gt;
+      &lt;/div&gt;
+      
+
+      </code></pre>
+    </div>
+
+    <div id="tab3" class="tab-content">
+      <h2>import-excel-wizard.component.scss</h2>
+      <pre><code class="language-html">
+
+        .wizard-btn {
+          @apply relative w-8 h-8 border-solid border-2 border-lightGray rounded-full m-0 p-0;
+        
+          &.passed-nav-btn {
+            @apply bg-skyBlue border-none;
+            &::after {
+              @apply absolute bg-skyBlue rounded-full;
+              content: "";
+              left: 50%;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              background-image: url("data:image/svg+xml,%3Csvg width='10' height='8' viewBox='0 0 10 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M9.20692 0.792787C9.39439 0.980314 9.49971 1.23462 9.49971 1.49979C9.49971 1.76495 9.39439 2.01926 9.20692 2.20679L4.20692 7.20679C4.01939 7.39426 3.76508 7.49957 3.49992 7.49957C3.23475 7.49957 2.98045 7.39426 2.79292 7.20679L0.792919 5.20679C0.610761 5.01818 0.509966 4.76558 0.512245 4.50339C0.514523 4.24119 0.619692 3.99038 0.8051 3.80497C0.990508 3.61956 1.24132 3.51439 1.50352 3.51211C1.76571 3.50983 2.01832 3.61063 2.20692 3.79279L3.49992 5.08579L7.79292 0.792787C7.98045 0.605316 8.23475 0.5 8.49992 0.5C8.76508 0.5 9.01939 0.605316 9.20692 0.792787Z' fill='white'/%3E%3C/svg%3E%0A");
+              width: 14px;
+              height: 14px;
+              background-size: 14px 12px;
+            }
+          }
+        
+          &.active {
+            @apply border-2 border-skyBlue;
+            &::after {
+              @apply absolute bg-skyBlue rounded-full;
+              content: "";
+              left: 50%;
+              top: 50%;
+              transform: translate(-50%, -50%);
+              width: 10px;
+              height: 10px;
+            }
+          }
+        
+          & + h6 {
+            top: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+          }
+        }
+        
+        .wizard-nav-item {
+          @apply relative pb-5;
+          &::after {
+            content: "";
+            @apply block absolute border-b-2 border-lightGray;
+            left: 100%;
+            top: 0;
+            width: 80px;
+            height: 20px;
+          }
+          &:last-of-type::after {
+            content: unset;
+          }
+          &.passed-nav-item::after {
+            border-color: #34b7c7;
+          }
+        }
+        
+      </code></pre>
+    </div>
+    <div id="tab4" class="tab-content">
+      <h2>package.json</h2>
+      <pre><code class="language-html">
+        {
+          "name": "d9-routing-app",
+          "version": "0.0.0",
+          "scripts": {
+            "ng": "ng",
+            "start": "ng serve",
+            "build": "ng build",
+            "watch": "ng build --watch --configuration development",
+            "test": "ng test"
+          },
+          "private": true,
+          "dependencies": {
+            "@angular/animations": "^17.3.0",
+            "@angular/common": "^17.3.0",
+            "@angular/compiler": "^17.3.0",
+            "@angular/core": "^17.3.0",
+            "@angular/forms": "^17.3.0",
+            "@angular/material": "^17.3.1",
+            "@angular/platform-browser": "^17.3.0",
+            "@angular/platform-browser-dynamic": "^17.3.0",
+            "@angular/router": "^17.3.0",
+            "@ng-bootstrap/ng-bootstrap": "^16.0.0",
+            "@popperjs/core": "^2.11.8",
+            "@tailwindcss/aspect-ratio": "^0.4.2",
+            "@tailwindcss/forms": "^0.5.7",
+            "@tailwindcss/typography": "^0.5.10",
+            "angular-svg-icon": "^17.0.0",
+            "bootstrap": "^5.3.3",
+            "rxjs": "~7.8.0",
+            "tslib": "^2.3.0",
+            "zone.js": "~0.14.3"
+          },
+          "devDependencies": {
+            "@angular-devkit/build-angular": "^17.3.1",
+            "@angular/cli": "^17.3.1",
+            "@angular/compiler-cli": "^17.3.0",
+            "@angular/localize": "^17.3.0",
+            "@ngneat/tailwind": "^7.0.3",
+            "@types/jasmine": "~5.1.0",
+            "autoprefixer": "^10.4.19",
+            "jasmine-core": "~5.1.0",
+            "karma": "~6.4.0",
+            "karma-chrome-launcher": "~3.2.0",
+            "karma-coverage": "~2.2.0",
+            "karma-jasmine": "~5.1.0",
+            "karma-jasmine-html-reporter": "~2.1.0",
+            "postcss": "^8.4.38",
+            "tailwindcss": "^3.4.1",
+            "typescript": "~5.4.2"
+          }
+        }
+        
+      </code></pre>
+    </div>
+    <!-- Highlight.js script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.3.1/highlight.min.js"></script>
+    <!-- <script>hljs.highlightAll();</script> -->
+    <script>
+      document.addEventListener('DOMContentLoaded', (event) => {
+        document.querySelectorAll('pre code').forEach((block) => {
+          hljs.highlightBlock(block);
+        });
+      });
+    </script>
+    <script>
+      function openTab(tabId) {
+        // Hide all tab contents
+        const contents = document.querySelectorAll('.tab-content');
+        contents.forEach((content) => {
+          content.classList.remove('active');
+        });
+
+        // Show the selected tab content
+        const selectedTab = document.getElementById(tabId);
+        if (selectedTab) {
+          selectedTab.classList.add('active');
+        }
+      }
+
+      // Optionally, open the first tab by default
+      openTab('tab1');
+    </script>
+  </body>
+</html>
